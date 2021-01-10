@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>client-side</title>
+</head>
+
+<body>
+  <form action="" id="input-text-form">
+    <textarea name="text" id="" cols="30" rows="10" placeholder="начните вводить сообщение..."></textarea>
+    <input type="submit">
+  </form>
+
+  <div id="messages">
+  </div>
+</body>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  socket.on('chat-message', (msg) => {
+    const messages = document.getElementById('messages')
+    const message = document.createElement('p')
+
+    message.innerText = msg
+
+    messages.appendChild(message)
+  })
+
+  const inputFormSubmitHandle = (e) => {
+    e.preventDefault()
+    console.log(e)
+
+    const text = e.target.text.value
+
+    socket.emit('message-sent', text)
+  }
+
+  document.getElementById('input-text-form').onsubmit = inputFormSubmitHandle
+</script>
+
+</html>
