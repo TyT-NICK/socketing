@@ -2,6 +2,8 @@ const app   = require('express')()
 const http  = require('http').Server(app)
 const io    = require('socket.io')(http)
 
+const clientController = require('./controllers/client.controller')()
+
 const PORT = 8080
 
 const connectedClients = []
@@ -11,15 +13,11 @@ app.get('/', (req, res) => {
 })
 
 io.on('connection', (client) => {
-  console.log('client connected')
-  connectedClients.push(client) 
 
-  client.on('message-sent', (msg) => {
-    console.log(msg)
-    if (msg) {
-      connectedClients.map(client => client.emit('chat-message', msg))
-    }
-  })
+  clientController.connectionHandler(client)
+
+  client.on('disconnect', () => clientController.disconnectionHandler(client))
+  client.on('message-sent', (msg) => clientController.publicMessageHandler(client, msg))
 })
 
 http.listen(PORT, () => {

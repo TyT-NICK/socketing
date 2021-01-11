@@ -11,6 +11,8 @@
   <form action="" id="input-text-form">
     <textarea name="text" id="" cols="30" rows="10" placeholder="начните вводить сообщение..."></textarea>
     <input type="submit">
+    <ul id="client-list">
+    </ul>
   </form>
 
   <div id="messages">
@@ -20,23 +22,48 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
-  socket.on('chat-message', (msg) => {
+  const socket = io({ query: { name: prompt('Enter your name') } });
+
+  socket.on('public-message', ({ clientName, msg }) => {
+    addMessage(`${clientName}: ${msg}`)
+  })
+
+  socket.on('disconnection', (data) => {
+    console.log(data)
+    const message = 'disconnected:\n' + data.reason
+    alert(message)
+  })
+
+  socket.on('clientlist-update', (clientlist) => {
+    const list = document.getElementById('client-list')
+    list.innerHTML = ''
+
+    clientlist.map((client) => {
+      const item = document.createElement('li')
+      item.innerText = client
+      list.appendChild(item)
+    })
+
+    addMessage
+  })
+
+  const addMessage = (msg) => {
     const messages = document.getElementById('messages')
     const message = document.createElement('p')
 
     message.innerText = msg
 
     messages.appendChild(message)
-  })
+  }
 
   const inputFormSubmitHandle = (e) => {
     e.preventDefault()
-    console.log(e)
 
     const text = e.target.text.value
 
-    socket.emit('message-sent', text)
+    if (text) {
+      socket.emit('message-sent', text)
+    }
   }
 
   document.getElementById('input-text-form').onsubmit = inputFormSubmitHandle
